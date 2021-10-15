@@ -1,6 +1,3 @@
 # Capstone_project
 
-fkljsdlkfjsdl;kfjoiewk;kl
-fkljdslfkjdsklfjsdlf
-lfdkjflsdkjflkdsjf
-sdlkfjsdlfkjkls
+Data Science and Machine Learning Capstone Project
