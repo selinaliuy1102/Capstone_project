@@ -8,11 +8,11 @@ import plotly.express as px
 
 # Read the airline data into pandas dataframe
 spacex_df = pd.read_csv("spacex_launch_dash.csv")
-# replacing blank spaces with '_' 
+# replacing blank spaces with '_'
 spacex_df.columns =[column.replace(" ", "_") for column in spacex_df.columns]
 
-#max_payload = spacex_df['Payload_Mass_(kg)'].max()
-#min_payload = spacex_df['Payload_Mass_(kg)'].min()
+max_payload = spacex_df["Payload_Mass_(kg)"].max()
+min_payload = spacex_df["Payload_Mass_(kg)"].min()
 
 # Create a dash application
 app = dash.Dash(__name__)
@@ -47,11 +47,15 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
                                 # TASK 3: Add a slider to select payload range
                                 #dcc.RangeSlider(id='payload-slider',...)
                                 dcc.RangeSlider(id='payload-slider',
-                                                min=0, max=10000, step=1000,
+                                                min=0, max=10000, step=500,
                                                 marks={0: '0',
-                                                    100: '100'},
-                                                #value=[min_payload, max_payload]),
-                                                value=[0, 10000]),
+                                                       2500:'2500',
+                                                       5000:'5000',
+                                                       7500:'7500',
+                                                    10000: '10000'},
+                                                value=[0, 10000],
+                                                tooltip={"placement": "bottom", "always_visible": True}
+                                                ),
 
                                 # TASK 4: Add a scatter chart to show the correlation between payload and launch success
                                 html.Div(dcc.Graph(id='success-payload-scatter-chart')),
@@ -65,24 +69,24 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
 def get_pie_chart(entered_site):
     filtered_df = spacex_df
     if entered_site == 'ALL':
-        fig = px.pie(spacex_df, values='class', 
-        names='Launch_Site', 
+        fig = px.pie(spacex_df, values='class',
+        names='Launch_Site',
         title='Total success launches by site ')
         return fig
     else:
         # return the outcomes piechart for a selected site
         #filtered_df = spacex_df.query('Launch_Site == ' +'"'+ entered_site +'"')
         #filtered_df = spacex_df.query('Launch_Site == "CCAFS LC-40"')
-        # fig = px.pie(filtered_df, values='class', 
-        #names='class', 
+        # fig = px.pie(filtered_df, values='class',
+        #names='class',
         #title='Total sucess launches fro site :'+entered_site)
         #title=filtered_df.shape[0])
 
      # return the outcomes piechart for a selected site
         filtered_df = spacex_df[spacex_df['Launch_Site'] == entered_site].groupby(['Launch_Site', 'class']).size().reset_index(name='class_count')
-        fig = px.pie(filtered_df, 
-                    values='class_count', 
-                    names='class_count', 
+        fig = px.pie(filtered_df,
+                    values='class_count',
+                    names='class_count',
                     title='Launch site:'+ entered_site)
         return fig
 
@@ -95,18 +99,27 @@ def get_pie_chart(entered_site):
               Input(component_id='site-dropdown', component_property='value'),
               Input(component_id='payload-slider', component_property='value'))
 def get_scatter_chart(entered_site,entered_payload):
+
+
     #filtered_df = spacex_df
+    filtered_df_1 = spacex_df[(entered_payload[0] < spacex_df["Payload_Mass_(kg)"]) & (spacex_df["Payload_Mass_(kg)"]< entered_payload[1])]
+
+
     if entered_site == 'ALL':
-        fig1 = px.scatter(spacex_df,x="Payload_Mass_(kg)", y="class", color="Booster_Version_Category",
-        title='Corralation between Payload and success for all sites')
+        fig1 = px.scatter(filtered_df_1,x="Payload_Mass_(kg)", y="class", color="Booster_Version_Category",
+                title='Corralation between Payload and success for all sites')
         return fig1
     else:
-        # return the outcomes piechart for a selected site
-        return
+        # return the outcomes scatter for a selected site
+        filtered_df2 = filtered_df_1.query('Launch_Site == ' +'"'+ entered_site +'"')
+        fig1 = px.scatter(filtered_df2,x="Payload_Mass_(kg)", y="class", color="Booster_Version_Category",
+                title='Corralation between Payload and success for ' + entered_site)
+        return fig1
 
 
 # Run the app
 if __name__ == '__main__':
     app.run_server()
+
 
 
